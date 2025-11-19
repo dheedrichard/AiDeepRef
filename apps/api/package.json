@@ -16,7 +16,21 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:migration": "jest --config ./test/jest-migration.json",
+    "test:security": "jest --testPathPattern=security --coverage --coverageDirectory=coverage/security",
+    "test:ai-security": "jest --testPathPattern=security/ai --coverage",
+    "test:security:verbose": "jest --testPathPattern=security --verbose --coverage",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- migration:generate -d ormconfig.ts",
+    "migration:create": "npm run typeorm -- migration:create",
+    "migration:run": "npm run typeorm -- migration:run -d ormconfig.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d ormconfig.ts",
+    "migration:show": "npm run typeorm -- migration:show -d ormconfig.ts",
+    "schema:drop": "npm run typeorm -- schema:drop -d ormconfig.ts",
+    "schema:sync": "npm run typeorm -- schema:sync -d ormconfig.ts",
+    "seed:ai-prompts": "ts-node -r tsconfig-paths/register src/database/seeds/run-ai-prompts-seed.ts",
+    "seed:ai-prompts:update": "ts-node -r tsconfig-paths/register src/database/seeds/run-ai-prompts-seed.ts --update"
   },
   "keywords": [
     "nestjs",
@@ -66,6 +80,7 @@
     "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",
+    "dotenv": "^16.4.5",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -73,6 +88,8 @@
     "prettier": "^3.6.2",
     "rimraf": "^6.1.0",
     "supertest": "^7.1.4",
-    "ts-jest": "^29.4.5"
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
   }
 }

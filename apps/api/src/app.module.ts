@@ -65,12 +65,29 @@ import { CsrfGuard } from './common/guards/csrf.guard';
         type: 'postgres',
         host: configService.get('DATABASE_HOST', 'localhost'),
         port: configService.get('DATABASE_PORT', 5432),
-        username: configService.get('DATABASE_USERNAME', 'postgres'),
+        username: configService.get('DATABASE_USER', 'postgres'),
         password: configService.get('DATABASE_PASSWORD', 'postgres'),
         database: configService.get('DATABASE_NAME', 'deepref'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('NODE_ENV') !== 'production',
-        logging: configService.get('NODE_ENV') === 'development',
+        // CRITICAL: Never use synchronize in production - it can cause data loss
+        synchronize: false,
+        // Migrations configuration
+        migrations: [__dirname + '/database/migrations/*.js'],
+        migrationsRun: configService.get('DATABASE_MIGRATIONS_RUN', 'true') === 'true',
+        // Logging configuration
+        logging: configService.get('DATABASE_LOGGING', 'false') === 'true'
+          ? 'all'
+          : ['error'],
+        // SSL configuration
+        ssl: configService.get('DATABASE_SSL', 'false') === 'true' ? {
+          rejectUnauthorized: false
+        } : false,
+        // Connection pooling
+        extra: {
+          max: parseInt(configService.get('DATABASE_POOL_MAX', '20'), 10),
+          min: parseInt(configService.get('DATABASE_POOL_MIN', '5'), 10),
+          idleTimeoutMillis: 30000,
+        },
       }),
     }),
 
