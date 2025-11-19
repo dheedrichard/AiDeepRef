@@ -72,7 +72,7 @@ export class AuthService {
     };
   }
 
-  async signin(signinDto: SigninDto) {
+  async signin(signinDto: SigninDto, ipAddress?: string, userAgent?: string) {
     const { email, password } = signinDto;
 
     const user = await this.userRepository.findOne({ where: { email } });
@@ -103,19 +103,64 @@ export class AuthService {
       throw new UnauthorizedException('Magic link authentication not yet implemented');
     }
 
-    // Handle successful login
+    // Reset failed login attempts on successful password verification
+    user.failedLoginAttempts = 0;
+    user.lastFailedLoginAt = null;
+    user.lockedUntil = null;
+
+    // Check if MFA is enabled
+    if (user.mfaEnabled) {
+      // Don't issue full JWT yet - return MFA challenge info
+      return {
+        mfaRequired: true,
+        userId: user.id,
+        email: user.email,
+        message: 'MFA verification required',
+      };
+    }
+
+    // Handle successful login (no MFA)
     await this.handleSuccessfulLogin(user);
 
     const accessToken = this.generateToken(user);
     const refreshToken = this.generateRefreshToken(user);
 
     return {
+      mfaRequired: false,
       userId: user.id,
       accessToken,
       refreshToken,
       role: user.role,
       emailVerified: user.emailVerified,
       kycCompleted: user.kycCompleted,
+    };
+  }
+
+  async verifyMfaAndIssueToken(
+    userId: string,
+    challengeId: string,
+    verified: boolean,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    if (!verified) {
+      throw new UnauthorizedException('MFA verification failed');
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Update last login
+    user.lastLoginAt = new Date();
+    await this.userRepository.save(user);
+
+    // Generate tokens with MFA verified flag
+    const accessToken = this.generateToken(user, true);
+    const refreshToken = this.generateRefreshToken(user);
+
+    return {
+      accessToken,
+      refreshToken,
     };
   }
 
@@ -203,11 +248,13 @@ export class AuthService {
     };
   }
 
-  private generateToken(user: User): string {
+  private generateToken(user: User, mfaVerified = false): string {
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
+      mfaEnabled: user.mfaEnabled,
+      mfa_verified: mfaVerified || !user.mfaEnabled, // If MFA not enabled, consider it verified
       sessionId: crypto.randomBytes(16).toString('hex'),
       type: 'access' as const,
     };

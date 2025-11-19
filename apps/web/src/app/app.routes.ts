@@ -26,15 +26,16 @@ export const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
 
-  // TODO: Uncomment routes below after creating component files
-
-  // Seeker routes (protected - will add auth guard later)
-  // {
-  //   path: 'app/seeker',
-  //   loadChildren: () => import('./features/seeker/seeker.routes').then((m) => m.SEEKER_ROUTES),
-  //   // TODO: Add auth guard
-  //   // canActivate: [AuthGuard],
-  // },
+  // Seeker routes (protected with auth and KYC guards)
+  {
+    path: 'app/seeker',
+    loadChildren: () => import('./features/seeker/seeker.routes').then((m) => m.SEEKER_ROUTES),
+    // Protected with auth guard and KYC guard
+    canActivate: [
+      () => import('./features/auth/guards/auth.guard').then((m) => m.authGuard),
+      () => import('./features/auth/guards/kyc.guard').then((m) => m.kycGuard),
+    ],
+  },
 
   // Referrer routes (public with verification)
   // {

@@ -3,9 +3,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
+import { MfaAuthController } from './controllers/mfa-auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { DatabaseModule } from '../database/database.module';
+import { MfaModule } from '../mfa/mfa.module';
 
 @Module({
   imports: [
@@ -20,8 +22,9 @@ import { DatabaseModule } from '../database/database.module';
         },
       }),
     }),
+    MfaModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, MfaAuthController],
   providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })

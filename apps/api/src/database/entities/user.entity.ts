@@ -79,4 +79,22 @@ export class User {
 
   @Column({ nullable: true })
   lastLoginAt: Date | null;
+
+  @Column({ default: 0 })
+  failedLoginAttempts: number;
+
+  @Column({ nullable: true })
+  lastFailedLoginAt: Date | null;
+
+  @Column({ nullable: true })
+  lockedUntil: Date | null;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column({ default: false })
+  kycCompleted: boolean;
+
+  @Column({ default: false })
+  mfaEnabled: boolean;
 }

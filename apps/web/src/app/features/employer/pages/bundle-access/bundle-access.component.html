@@ -1,0 +1,201 @@
+<div class="bundle-access-container">
+  <div class="bundle-access-card">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">DeepRef</div>
+      <h1>Access Reference Bundle</h1>
+      <p class="subtitle">
+        Enter the bundle link or ID you received to view references
+      </p>
+    </div>
+
+    <!-- Error Alert -->
+    @if (error()) {
+      <div class="alert alert-error">
+        <div class="alert-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="alert-content">
+          <p>{{ error() }}</p>
+        </div>
+        <button type="button" class="alert-close" (click)="clearError()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <!-- Access Form -->
+    <form [formGroup]="accessForm" (ngSubmit)="onSubmit()" class="access-form">
+      <!-- Bundle Link Input -->
+      <div class="form-group">
+        <label for="bundleLink" class="form-label">
+          Bundle Link or ID
+          <span class="required">*</span>
+        </label>
+        <div class="input-with-action">
+          <input
+            id="bundleLink"
+            type="text"
+            formControlName="bundleLink"
+            class="form-input"
+            [class.error]="hasFieldError('bundleLink')"
+            placeholder="Paste link or enter bundle ID"
+            autocomplete="off"
+          />
+          <button
+            type="button"
+            class="input-action-btn"
+            (click)="pasteFromClipboard()"
+            title="Paste from clipboard"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+            </svg>
+          </button>
+        </div>
+        @if (hasFieldError('bundleLink')) {
+          <div class="field-error">{{ getFieldError('bundleLink') }}</div>
+        }
+        <div class="field-hint">
+          Example: https://deepref.com/b/abc123 or just abc123
+        </div>
+      </div>
+
+      <!-- Password Field (conditional) -->
+      @if (showPasswordField()) {
+        <div class="form-group">
+          <label for="password" class="form-label">
+            Password
+            @if (requiresPassword()) {
+              <span class="required">*</span>
+            }
+          </label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            class="form-input"
+            [class.error]="hasFieldError('password')"
+            placeholder="Enter bundle password"
+            autocomplete="off"
+          />
+          @if (hasFieldError('password')) {
+            <div class="field-error">{{ getFieldError('password') }}</div>
+          }
+          @if (!requiresPassword()) {
+            <div class="field-hint">
+              <button
+                type="button"
+                class="text-link"
+                (click)="togglePasswordField()"
+              >
+                Remove password field
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="form-group">
+          <button
+            type="button"
+            class="text-link"
+            (click)="togglePasswordField()"
+          >
+            + This bundle requires a password
+          </button>
+        </div>
+      }
+
+      <!-- Viewer Email (optional for guests) -->
+      <div class="form-group">
+        <label for="viewerEmail" class="form-label">
+          Your Email (optional)
+        </label>
+        <input
+          id="viewerEmail"
+          type="email"
+          formControlName="viewerEmail"
+          class="form-input"
+          [class.error]="hasFieldError('viewerEmail')"
+          placeholder="your@email.com"
+          autocomplete="email"
+        />
+        @if (hasFieldError('viewerEmail')) {
+          <div class="field-error">{{ getFieldError('viewerEmail') }}</div>
+        }
+        <div class="field-hint">
+          Optional: Provide your email to receive updates or for the seeker to identify you
+        </div>
+      </div>
+
+      <!-- Remember Email Checkbox -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="rememberEmail"
+            class="checkbox-input"
+          />
+          <span class="checkbox-text">Remember my email</span>
+        </label>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="!canSubmit()"
+          [class.loading]="isLoading()"
+        >
+          @if (isLoading()) {
+            <span class="spinner"></span>
+            <span>Accessing Bundle...</span>
+          } @else {
+            <span>Access Bundle</span>
+          }
+        </button>
+      </div>
+    </form>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <div class="info-card">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="info-icon">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        <div class="info-content">
+          <h3>How it works</h3>
+          <ul>
+            <li>Enter the bundle link you received</li>
+            <li>Provide password if bundle is protected</li>
+            <li>View verified references and credentials</li>
+            <li>Download or share individual references</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="security-notice">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="security-icon">
+          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Your viewing session is secure and tracked anonymously</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>&copy; 2025 DeepRef. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="/help">Help</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,122 @@
+name: Sentry Release
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  workflow_dispatch:
+
+env:
+  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+  SENTRY_PROJECT_API: ${{ secrets.SENTRY_PROJECT_API }}
+  SENTRY_PROJECT_WEB: ${{ secrets.SENTRY_PROJECT_WEB }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+jobs:
+  create-sentry-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [api, web]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for proper commit association
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Sentry CLI
+        run: |
+          curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Create Sentry release
+        env:
+          SENTRY_PROJECT: ${{ matrix.project == 'api' && secrets.SENTRY_PROJECT_API || secrets.SENTRY_PROJECT_WEB }}
+        run: |
+          # Create a unique release name using git SHA
+          export SENTRY_RELEASE="${{ github.sha }}"
+
+          # Create the release
+          sentry-cli releases new -p $SENTRY_PROJECT $SENTRY_RELEASE
+
+          # Associate commits with the release
+          sentry-cli releases set-commits $SENTRY_RELEASE --auto
+
+          # Set release metadata
+          sentry-cli releases set-commits $SENTRY_RELEASE --auto
+
+          echo "Created Sentry release: $SENTRY_RELEASE for project: $SENTRY_PROJECT"
+
+      - name: Build project
+        working-directory: apps/${{ matrix.project }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload source maps to Sentry (Backend)
+        if: matrix.project == 'api'
+        env:
+          SENTRY_RELEASE: ${{ github.sha }}
+        run: |
+          sentry-cli sourcemaps upload \
+            --org $SENTRY_ORG \
+            --project ${{ secrets.SENTRY_PROJECT_API }} \
+            --release $SENTRY_RELEASE \
+            apps/api/dist
+
+      - name: Upload source maps to Sentry (Frontend)
+        if: matrix.project == 'web'
+        env:
+          SENTRY_RELEASE: ${{ github.sha }}
+        run: |
+          sentry-cli sourcemaps upload \
+            --org $SENTRY_ORG \
+            --project ${{ secrets.SENTRY_PROJECT_WEB }} \
+            --release $SENTRY_RELEASE \
+            apps/web/dist/browser
+
+      - name: Finalize Sentry release
+        env:
+          SENTRY_RELEASE: ${{ github.sha }}
+          SENTRY_PROJECT: ${{ matrix.project == 'api' && secrets.SENTRY_PROJECT_API || secrets.SENTRY_PROJECT_WEB }}
+        run: |
+          # Finalize the release
+          sentry-cli releases finalize $SENTRY_RELEASE
+
+          echo "Finalized Sentry release: $SENTRY_RELEASE"
+
+  notify-deployment:
+    needs: create-sentry-release
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
+
+    steps:
+      - name: Install Sentry CLI
+        run: |
+          curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Create deployment notification
+        env:
+          SENTRY_RELEASE: ${{ github.sha }}
+          SENTRY_ENVIRONMENT: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
+        run: |
+          # Notify Sentry of deployment for API
+          sentry-cli releases deploys $SENTRY_RELEASE new \
+            --env $SENTRY_ENVIRONMENT \
+            --org $SENTRY_ORG \
+            --project ${{ secrets.SENTRY_PROJECT_API }}
+
+          # Notify Sentry of deployment for Web
+          sentry-cli releases deploys $SENTRY_RELEASE new \
+            --env $SENTRY_ENVIRONMENT \
+            --org $SENTRY_ORG \
+            --project ${{ secrets.SENTRY_PROJECT_WEB }}
+
+          echo "Notified Sentry of deployment to $SENTRY_ENVIRONMENT"

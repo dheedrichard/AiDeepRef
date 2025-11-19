@@ -15,6 +15,10 @@ import { provideRouterStore } from '@ngrx/router-store';
 import { routes } from './app.routes';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
 import { AuthEffects } from './features/auth/store/auth.effects';
+import { seekerFeatureKey, seekerReducer } from './features/seeker/store/seeker.reducer';
+import { SeekerEffects } from './features/seeker/store/seeker.effects';
+import { referrerFeatureKey, referrerReducer } from './features/referrer/store/referrer.reducer';
+import { ReferrerEffects } from './features/referrer/store/referrer.effects';
 
 /**
  * DeepRef Application Configuration
@@ -62,6 +66,10 @@ export const appConfig: ApplicationConfig = {
       {
         // Auth feature reducer
         [authFeatureKey]: authReducer,
+        // Seeker feature reducer
+        [seekerFeatureKey]: seekerReducer,
+        // Referrer feature reducer
+        [referrerFeatureKey]: referrerReducer,
       },
       {
         runtimeChecks: {
@@ -79,6 +87,10 @@ export const appConfig: ApplicationConfig = {
     provideEffects([
       // Auth effects
       AuthEffects,
+      // Seeker effects
+      SeekerEffects,
+      // Referrer effects
+      ReferrerEffects,
     ]),
 
     // NgRx Router Store - Router state in store

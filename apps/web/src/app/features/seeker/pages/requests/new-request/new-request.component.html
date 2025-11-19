@@ -1,0 +1,424 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">New Reference Request</h1>
+    <p class="mt-2 text-gray-600">Create a personalized reference request in 5 easy steps.</p>
+  </div>
+
+  <!-- Progress Stepper -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      @for (step of [1, 2, 3, 4, 5]; track step) {
+        <div class="flex items-center" [class.flex-1]="step < 5">
+          <div
+            class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors"
+            [ngClass]="{
+              'bg-blue-600 border-blue-600 text-white': step <= currentStep(),
+              'border-gray-300 text-gray-500': step > currentStep()
+            }"
+          >
+            @if (step < currentStep()) {
+              <i class="pi pi-check"></i>
+            } @else {
+              <span>{{ step }}</span>
+            }
+          </div>
+          @if (step < 5) {
+            <div
+              class="flex-1 h-1 mx-2"
+              [ngClass]="{
+                'bg-blue-600': step < currentStep(),
+                'bg-gray-300': step >= currentStep()
+              }"
+            ></div>
+          }
+        </div>
+      }
+    </div>
+    <div class="flex justify-between mt-2">
+      <span class="text-xs text-gray-600">Referrer Info</span>
+      <span class="text-xs text-gray-600">Questions</span>
+      <span class="text-xs text-gray-600">Format</span>
+      <span class="text-xs text-gray-600">Permissions</span>
+      <span class="text-xs text-gray-600">Review</span>
+    </div>
+  </div>
+
+  <!-- Error Display -->
+  @if (error$ | async; as error) {
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center">
+        <i class="pi pi-exclamation-triangle text-red-600 mr-3"></i>
+        <div>
+          <h3 class="text-sm font-medium text-red-800">Error creating request</h3>
+          <p class="text-sm text-red-700 mt-1">{{ error }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Step Forms -->
+  <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <!-- Step 1: Referrer Information -->
+    @if (currentStep() === 1) {
+      <form [formGroup]="referrerForm">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Referrer Information</h2>
+        <p class="text-sm text-gray-600 mb-6">
+          Enter the details of the person you'd like to request a reference from.
+        </p>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Referrer Name <span class="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="referrerName"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="John Doe"
+            />
+            @if (
+              referrerForm.get('referrerName')?.invalid &&
+              referrerForm.get('referrerName')?.touched
+            ) {
+              <p class="text-sm text-red-600 mt-1">Name is required</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Email Address <span class="text-red-600">*</span>
+            </label>
+            <input
+              type="email"
+              formControlName="referrerEmail"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="john.doe@example.com"
+            />
+            @if (
+              referrerForm.get('referrerEmail')?.invalid &&
+              referrerForm.get('referrerEmail')?.touched
+            ) {
+              <p class="text-sm text-red-600 mt-1">Valid email is required</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Company <span class="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="company"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Acme Corporation"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Role/Title <span class="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="role"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Senior Manager"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Working Relationship (Optional)
+            </label>
+            <textarea
+              formControlName="workingRelationship"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Describe your working relationship..."
+            ></textarea>
+          </div>
+        </div>
+      </form>
+    }
+
+    <!-- Step 2: Question Selection -->
+    @if (currentStep() === 2) {
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Select Questions</h2>
+        <p class="text-sm text-gray-600 mb-6">
+          Choose questions you'd like your referrer to answer. You can use AI-generated questions
+          or add your own.
+        </p>
+
+        <!-- AI Generation Button -->
+        <button
+          type="button"
+          (click)="generateAiQuestions()"
+          [disabled]="isGeneratingQuestions() || !referrerForm.valid"
+          class="mb-6 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+        >
+          @if (isGeneratingQuestions()) {
+            <i class="pi pi-spin pi-spinner mr-2"></i>
+            <span>Generating...</span>
+          } @else {
+            <i class="pi pi-sparkles mr-2"></i>
+            <span>Generate AI Questions</span>
+          }
+        </button>
+
+        <!-- AI Generated Questions -->
+        @if (aiGeneratedQuestions().length > 0) {
+          <div class="mb-6">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">AI-Generated Questions</h3>
+            <div class="space-y-2">
+              @for (question of aiGeneratedQuestions(); track question.id) {
+                <label
+                  class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                  [ngClass]="{ 'border-blue-500 bg-blue-50': isQuestionSelected(question) }"
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="isQuestionSelected(question)"
+                    (change)="toggleQuestion(question)"
+                    class="mt-1 mr-3"
+                  />
+                  <div class="flex-1">
+                    <p class="text-sm text-gray-900">{{ question.text }}</p>
+                    @if (question.category) {
+                      <span
+                        class="inline-block mt-1 px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded"
+                      >
+                        {{ question.category }}
+                      </span>
+                    }
+                  </div>
+                </label>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Custom Questions -->
+        <div>
+          <h3 class="text-sm font-semibold text-gray-700 mb-3">Add Custom Questions</h3>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              #customQuestionInput
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your custom question..."
+            />
+            <button
+              type="button"
+              (click)="addCustomQuestion(customQuestionInput.value); customQuestionInput.value = ''"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Selected Questions Summary -->
+        @if (selectedQuestions().length > 0) {
+          <div class="mt-6">
+            <p class="text-sm font-medium text-gray-700 mb-2">
+              Selected Questions ({{ selectedQuestions().length }})
+            </p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Step 3: Format Preferences -->
+    @if (currentStep() === 3) {
+      <form [formGroup]="formatForm">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Reference Format</h2>
+        <p class="text-sm text-gray-600 mb-6">
+          Select which formats your referrer can use to provide their reference.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          @for (format of formatOptions; track format.value) {
+            <button
+              type="button"
+              (click)="toggleFormat(format.value)"
+              class="p-6 border-2 rounded-lg transition-colors text-center"
+              [ngClass]="{
+                'border-blue-500 bg-blue-50': isFormatSelected(format.value),
+                'border-gray-200 hover:border-gray-300': !isFormatSelected(format.value)
+              }"
+            >
+              <i [class]="'pi ' + format.icon + ' text-4xl mb-3'" [ngClass]="{
+                'text-blue-600': isFormatSelected(format.value),
+                'text-gray-400': !isFormatSelected(format.value)
+              }"></i>
+              <p class="text-lg font-medium text-gray-900">{{ format.label }}</p>
+              @if (isFormatSelected(format.value)) {
+                <i class="pi pi-check-circle text-blue-600 mt-2"></i>
+              }
+            </button>
+          }
+        </div>
+
+        @if (selectedFormats().length === 0 && formatForm.touched) {
+          <p class="text-sm text-red-600 mt-4">Please select at least one format</p>
+        }
+      </form>
+    }
+
+    <!-- Step 4: Permissions -->
+    @if (currentStep() === 4) {
+      <form [formGroup]="permissionsForm">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Permissions & Settings</h2>
+        <p class="text-sm text-gray-600 mb-6">
+          Configure who can access your reference and additional permissions.
+        </p>
+
+        <div class="space-y-4">
+          <label
+            class="flex items-start p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors"
+          >
+            <input
+              type="checkbox"
+              formControlName="allowEmployerReachback"
+              class="mt-1 mr-3"
+            />
+            <div>
+              <p class="text-sm font-medium text-gray-900">Allow Employer Reach-back</p>
+              <p class="text-sm text-gray-600 mt-1">
+                Employers viewing your reference can contact the referrer directly to verify
+                authenticity. This increases trust and credibility.
+              </p>
+            </div>
+          </label>
+        </div>
+      </form>
+    }
+
+    <!-- Step 5: Review & Submit -->
+    @if (currentStep() === 5) {
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Review & Submit</h2>
+        <p class="text-sm text-gray-600 mb-6">
+          Review your reference request before sending it to your referrer.
+        </p>
+
+        <div class="space-y-6">
+          <!-- Referrer Info -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">Referrer Information</h3>
+            <dl class="space-y-2">
+              <div class="flex">
+                <dt class="w-32 text-sm text-gray-600">Name:</dt>
+                <dd class="text-sm font-medium text-gray-900">
+                  {{ referrerForm.value.referrerName }}
+                </dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-sm text-gray-600">Email:</dt>
+                <dd class="text-sm font-medium text-gray-900">
+                  {{ referrerForm.value.referrerEmail }}
+                </dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-sm text-gray-600">Company:</dt>
+                <dd class="text-sm font-medium text-gray-900">
+                  {{ referrerForm.value.company }}
+                </dd>
+              </div>
+              <div class="flex">
+                <dt class="w-32 text-sm text-gray-600">Role:</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ referrerForm.value.role }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Questions -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">
+              Questions ({{ selectedQuestions().length }})
+            </h3>
+            <ol class="space-y-2 list-decimal list-inside">
+              @for (question of selectedQuestions(); track question.id) {
+                <li class="text-sm text-gray-900">{{ question.text }}</li>
+              }
+            </ol>
+          </div>
+
+          <!-- Formats -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">Allowed Formats</h3>
+            <div class="flex gap-2">
+              @for (format of selectedFormats(); track format) {
+                <span
+                  class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                >
+                  {{ format }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Permissions -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">Permissions</h3>
+            <p class="text-sm text-gray-900">
+              Employer Reach-back:
+              <span class="font-medium">
+                {{ permissionsForm.value.allowEmployerReachback ? 'Enabled' : 'Disabled' }}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="flex justify-between">
+    <button
+      type="button"
+      (click)="cancel()"
+      class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+    >
+      Cancel
+    </button>
+
+    <div class="flex gap-3">
+      @if (currentStep() > 1) {
+        <button
+          type="button"
+          (click)="previousStep()"
+          class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+        >
+          Previous
+        </button>
+      }
+
+      @if (currentStep() < totalSteps) {
+        <button
+          type="button"
+          (click)="nextStep()"
+          [disabled]="!validateCurrentStep()"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      } @else {
+        <button
+          type="button"
+          (click)="submitRequest()"
+          [disabled]="!validateAllSteps() || (isLoading$ | async)"
+          class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+        >
+          @if (isLoading$ | async) {
+            <i class="pi pi-spin pi-spinner mr-2"></i>
+          }
+          <span>Send Request</span>
+        </button>
+      }
+    </div>
+  </div>
+</div>

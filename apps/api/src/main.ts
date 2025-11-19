@@ -6,9 +6,17 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { helmetMiddleware } from './common/middleware/helmet.middleware';
 import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser';
+import * as Sentry from '@sentry/node';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+
+  // Initialize Sentry before creating the NestJS app
+  // This is required for proper Express integration
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler;
+  }
+
   const app = await NestFactory.create(AppModule);
 
   // Use Winston logger

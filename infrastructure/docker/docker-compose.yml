@@ -22,21 +22,43 @@ services:
     networks:
       - deepref-network
 
-  # Redis Cache
+  # Redis Cache (v7.4 with persistence and security)
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: deepref-redis
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-deepref_redis_dev_password}
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-deepref_redis_dev_password}
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-deepref_redis_dev_password}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
     networks:
       - deepref-network
+    restart: unless-stopped
+
+  # Redis Commander (Redis GUI for debugging)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: deepref-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD:-deepref_redis_dev_password}
+      - HTTP_USER=${REDIS_COMMANDER_USER:-admin}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD:-admin}
+    ports:
+      - "8081:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - deepref-network
+    restart: unless-stopped
 
   # NestJS API
   api:
@@ -50,6 +72,10 @@ services:
       DATABASE_URL: postgresql://deepref:deepref_dev_password@postgres:5432/deepref
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-deepref_redis_dev_password}
+      REDIS_TTL_DEFAULT: 300
+      REDIS_MAX_MEMORY: 256mb
+      CACHE_ENABLED: true
       JWT_SECRET: dev_jwt_secret_change_in_production
       CORS_ORIGIN: http://localhost:4200
     ports:

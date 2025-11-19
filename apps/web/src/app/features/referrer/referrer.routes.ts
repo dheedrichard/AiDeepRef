@@ -1,6 +1,39 @@
 import { Routes } from '@angular/router';
 
 export const REFERRER_ROUTES: Routes = [
+  // Dashboard (authenticated referrers)
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+    title: 'Referrer Dashboard - DeepRef',
+  },
+
+  // Reference Management
+  {
+    path: 'references',
+    loadComponent: () =>
+      import('./pages/references/references.component').then((m) => m.ReferencesComponent),
+    title: 'My References - DeepRef',
+  },
+
+  // Review and accept/decline reference request
+  {
+    path: 'invite/:id',
+    loadComponent: () =>
+      import('./pages/invite/invite.component').then((m) => m.InviteComponent),
+    title: 'Reference Request - DeepRef',
+  },
+
+  // Respond to reference request (multi-format recording)
+  {
+    path: 'respond/:id',
+    loadComponent: () =>
+      import('./pages/respond/respond.component').then((m) => m.RespondComponent),
+    title: 'Provide Reference - DeepRef',
+  },
+
+  // Legacy routes (existing)
   {
     path: 'invite/:token',
     loadComponent: () =>
@@ -53,5 +86,12 @@ export const REFERRER_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/submissions/submissions.component').then((m) => m.SubmissionsComponent),
     title: 'My Submissions - DeepRef',
+  },
+
+  // Default redirect
+  {
+    path: '',
+    redirectTo: 'dashboard',
+    pathMatch: 'full',
   },
 ];
