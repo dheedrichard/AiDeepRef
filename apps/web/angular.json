@@ -24,6 +24,11 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "src/main.ts",
+            "server": "src/main.server.ts",
+            "prerender": false,
+            "ssr": {
+              "entry": "server.ts"
+            },
             "polyfills": [
               "zone.js"
             ],
@@ -44,21 +49,48 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "400kb",
+                  "maximumError": "500kb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "4kb",
+                  "maximumError": "6kb"
+                },
+                {
+                  "type": "bundle",
+                  "name": "main",
+                  "baseline": "400kb",
+                  "maximumWarning": "450kb",
+                  "maximumError": "500kb"
+                },
+                {
+                  "type": "bundle",
+                  "name": "vendor",
+                  "baseline": "300kb",
+                  "maximumWarning": "350kb",
+                  "maximumError": "400kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": true
+              },
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "namedChunks": true
             }
           },
           "defaultConfiguration": "production"
@@ -73,7 +105,32 @@
               "buildTarget": "deepref-web:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "buildTarget": "deepref-web:build"
+          }
+        },
+        "prerender": {
+          "builder": "@angular/build:prerender",
+          "options": {
+            "routes": [
+              "/",
+              "/auth",
+              "/auth/welcome",
+              "/auth/signin",
+              "/auth/signup",
+              "/auth/forgot-password"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "deepref-web:build:production"
+            },
+            "development": {
+              "buildTarget": "deepref-web:build:development"
+            }
+          },
+          "defaultConfiguration": "production"
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n"

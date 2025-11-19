@@ -3,13 +3,16 @@
  *
  * Handles all seeker-related API calls.
  * Provides methods for dashboard data, profile, and KYC operations.
+ *
+ * Extends BaseApiService for automatic TransferState support,
+ * preventing duplicate API calls during SSR hydration.
  */
 
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { DashboardStats, RecentActivity } from '../models/seeker.models';
 import { environment } from '../../../../environments/environment';
+import { BaseApiService } from '../../../core/services/api/base-api.service';
 
 /**
  * Seeker API Service
@@ -17,32 +20,34 @@ import { environment } from '../../../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class SeekerApiService {
-  private http = inject(HttpClient);
+export class SeekerApiService extends BaseApiService {
   private readonly apiUrl = `${environment.apiUrl}/seekers`;
 
   /**
-   * Get Dashboard Data
+   * Get Dashboard Data with TransferState support
    */
   getDashboardData(): Observable<{
     stats: DashboardStats;
     recentActivity: RecentActivity[];
   }> {
-    return this.http.get<{
-      stats: DashboardStats;
-      recentActivity: RecentActivity[];
-    }>(`${this.apiUrl}/dashboard`);
+    return this.getWithTransferState(
+      'seeker-dashboard',
+      `${this.apiUrl}/dashboard`
+    );
   }
 
   /**
-   * Get Recent Activity
+   * Get Recent Activity with TransferState support
    */
   getRecentActivity(): Observable<RecentActivity[]> {
-    return this.http.get<RecentActivity[]>(`${this.apiUrl}/activity`);
+    return this.getWithTransferState(
+      'seeker-activity',
+      `${this.apiUrl}/activity`
+    );
   }
 
   /**
-   * Get Seeker Profile
+   * Get Seeker Profile with TransferState support
    */
   getProfile(seekerId: string): Observable<{
     id: string;
@@ -51,17 +56,14 @@ export class SeekerApiService {
     email: string;
     kycStatus: string;
   }> {
-    return this.http.get<{
-      id: string;
-      firstName: string;
-      lastName: string;
-      email: string;
-      kycStatus: string;
-    }>(`${this.apiUrl}/${seekerId}/profile`);
+    return this.getWithTransferState(
+      `seeker-profile-${seekerId}`,
+      `${this.apiUrl}/${seekerId}/profile`
+    );
   }
 
   /**
-   * Upload KYC Documents
+   * Upload KYC Documents (uses POST, no TransferState)
    */
   uploadKycDocuments(
     seekerId: string,
@@ -70,14 +72,14 @@ export class SeekerApiService {
     uploadId: string;
     status: string;
   }> {
-    return this.http.post<{
+    return this.post<{
       uploadId: string;
       status: string;
     }>(`${this.apiUrl}/${seekerId}/kyc/upload`, formData);
   }
 
   /**
-   * Upload KYC Selfie
+   * Upload KYC Selfie (uses POST, no TransferState)
    */
   uploadKycSelfie(
     seekerId: string,
@@ -86,7 +88,7 @@ export class SeekerApiService {
     verificationId: string;
     status: string;
   }> {
-    return this.http.post<{
+    return this.post<{
       verificationId: string;
       status: string;
     }>(`${this.apiUrl}/${seekerId}/kyc/selfie`, formData);

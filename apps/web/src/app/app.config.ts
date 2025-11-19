@@ -7,6 +7,7 @@ import {
 import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideServiceWorker } from '@angular/service-worker';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
@@ -103,6 +104,12 @@ export const appConfig: ApplicationConfig = {
       autoPause: true, // Pauses recording actions and state changes when the extension window is not open
       trace: false, // If set to true, will include stack trace for every dispatched action
       traceLimit: 75, // Maximum stack trace frames to be stored (in case trace option was provided as true)
+    }),
+
+    // Service Worker for PWA - Production only
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
 };

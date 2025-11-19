@@ -2,12 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>DeeprefWeb</title>
+  <title>DeepRef - Professional Reference Management Platform</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DeepRef - Secure and professional reference management for job seekers, referrers, and employers">
+  <meta name="theme-color" content="#1976d2">
+
+  <!-- Preconnect to external domains for faster resource loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- DNS prefetch for API endpoints -->
+  <link rel="dns-prefetch" href="https://api.deepref.com">
+
+  <!-- Optimized font loading with font-display: swap -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
+  <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Manifest for PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
 <body>
   <app-root></app-root>
+
+  <!-- NoScript fallback -->
+  <noscript>
+    <div style="text-align: center; padding: 2rem; font-family: system-ui, -apple-system, sans-serif;">
+      <h1>JavaScript Required</h1>
+      <p>DeepRef requires JavaScript to be enabled. Please enable JavaScript in your browser settings.</p>
+    </div>
+  </noscript>
 </body>
 </html>

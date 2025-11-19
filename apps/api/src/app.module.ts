@@ -16,6 +16,7 @@ import { BundlesModule } from './bundles/bundles.module';
 import { AiModule } from './ai/ai.module';
 import { DatabaseModule } from './database/database.module';
 import { CommonModule } from './common/common.module';
+import { BffModule } from './bff/bff.module';
 
 // Monitoring imports
 import { SentryModule } from './monitoring/sentry.module';
@@ -23,6 +24,9 @@ import { SentryExceptionFilter } from './monitoring/filters/sentry-exception.fil
 import { UserContextInterceptor } from './monitoring/interceptors/user-context.interceptor';
 import { PerformanceInterceptor } from './monitoring/interceptors/performance.interceptor';
 import { TypeOrmSentryLogger } from './monitoring/loggers/typeorm-sentry.logger';
+
+// Performance imports
+import { CacheControlInterceptor } from './common/interceptors/cache-control.interceptor';
 
 // Security imports
 import { getThrottleConfig } from './common/config/throttle.config';
@@ -114,6 +118,7 @@ import { CsrfGuard } from './common/guards/csrf.guard';
     ReferencesModule,
     BundlesModule,
     AiModule,
+    BffModule, // Backend-for-Frontend aggregation layer
   ],
   providers: [
     // Global Exception Filter - Sentry error tracking
@@ -130,6 +135,10 @@ import { CsrfGuard } from './common/guards/csrf.guard';
     {
       provide: APP_INTERCEPTOR,
       useClass: UserContextInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheControlInterceptor, // HTTP caching with ETags
     },
 
     // Global Guards - Order matters!

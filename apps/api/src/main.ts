@@ -7,6 +7,7 @@ import { helmetMiddleware } from './common/middleware/helmet.middleware';
 import * as session from 'express-session';
 import * as cookieParser from 'cookie-parser';
 import * as Sentry from '@sentry/node';
+import * as compression from 'compression';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -24,6 +25,27 @@ async function bootstrap() {
 
   // Security: Add Helmet middleware
   app.use(helmetMiddleware);
+
+  // Performance: Add HTTP compression (Brotli/Gzip)
+  app.use(
+    compression({
+      filter: (req, res) => {
+        // Don't compress if client sends x-no-compression header
+        if (req.headers['x-no-compression']) {
+          return false;
+        }
+        // Use compression filter
+        return compression.filter(req, res);
+      },
+      level: 6, // Compression level (1-9), 6 is balanced
+      threshold: 1024, // Only compress responses larger than 1KB
+      // Enable Brotli compression for better compression ratio
+      brotli: {
+        enabled: true,
+        zlib: {},
+      },
+    }),
+  );
 
   // Security: Cookie parser for CSRF
   app.use(cookieParser());

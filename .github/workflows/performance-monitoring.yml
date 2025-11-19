@@ -1,0 +1,91 @@
+name: Daily Performance Monitoring
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build:web -- --configuration=production
+
+      - name: Analyze bundle size
+        run: npm run --workspace=apps/web analyze:bundle
+        continue-on-error: true
+
+      - name: Check performance budgets
+        run: |
+          if [ -f performance-report.json ]; then
+            echo "📊 Performance Report:"
+            cat performance-report.json
+
+            # Check if budgets passed
+            if jq -e '.budgets.js.pass and .budgets.css.pass' performance-report.json > /dev/null; then
+              echo "✅ All performance budgets passed!"
+            else
+              echo "⚠️ Performance budgets exceeded!"
+              jq '.budgets' performance-report.json
+            fi
+          else
+            echo "❌ Performance report not found!"
+            exit 1
+          fi
+
+      - name: Generate performance summary
+        if: always()
+        run: |
+          if [ -f performance-report.json ]; then
+            echo "## Performance Monitoring Summary" > performance-summary.md
+            echo "" >> performance-summary.md
+            echo "**Date:** $(date -u)" >> performance-summary.md
+            echo "" >> performance-summary.md
+            echo "### Bundle Sizes" >> performance-summary.md
+            echo "" >> performance-summary.md
+            jq -r '.bundles | to_entries[] | "- \(.key): \(.value)"' performance-report.json >> performance-summary.md
+            echo "" >> performance-summary.md
+            echo "### Budget Status" >> performance-summary.md
+            echo "" >> performance-summary.md
+            jq -r '.budgets | to_entries[] | "- \(.key): \(.value.current) KB / \(.value.limit) KB (\(if .value.pass then "✅" else "❌" end))"' performance-report.json >> performance-summary.md
+          fi
+
+      - name: Upload performance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-performance-report-${{ github.run_id }}
+          path: |
+            performance-report.json
+            performance-summary.md
+
+      - name: Archive performance history
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-history
+          path: performance-report.json
+          retention-days: 90
+
+      - name: Fail if budgets exceeded
+        if: always()
+        run: |
+          if [ -f performance-report.json ]; then
+            if ! jq -e '.budgets.js.pass and .budgets.css.pass' performance-report.json > /dev/null; then
+              echo "❌ Performance budgets exceeded in daily monitoring!"
+              exit 1
+            fi
+          fi
