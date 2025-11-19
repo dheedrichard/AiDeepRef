@@ -1,0 +1,77 @@
+<div class="sentry-feedback-overlay" *ngIf="isVisible" (click)="hide()">
+  <div class="sentry-feedback-dialog" (click)="$event.stopPropagation()">
+    <button class="close-button" (click)="hide()" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M12.5 3.5L8 8l4.5 4.5L11 14l-4.5-4.5L2 14 .5 12.5 5 8 .5 3.5 2 2l4.5 4.5L11 2l1.5 1.5z"/>
+      </svg>
+    </button>
+
+    <div class="dialog-content">
+      <h2 class="dialog-title">Report Feedback</h2>
+
+      <p class="dialog-subtitle" *ngIf="!isSubmitted">
+        Our team has been notified of the issue. If you'd like to help, please tell us what happened below.
+      </p>
+
+      <div class="success-message" *ngIf="isSubmitted">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zm5 8l-6 6-3-3 1.5-1.5L9 11l4.5-4.5L15 8z"/>
+        </svg>
+        <p>Thank you for your feedback!</p>
+      </div>
+
+      <form *ngIf="!isSubmitted" (ngSubmit)="submitFeedback()">
+        <div class="form-group">
+          <label for="name">Name (optional)</label>
+          <input
+            type="text"
+            id="name"
+            [(ngModel)]="feedbackData.name"
+            name="name"
+            placeholder="Your name"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email (optional)</label>
+          <input
+            type="email"
+            id="email"
+            [(ngModel)]="feedbackData.email"
+            name="email"
+            placeholder="your.email@example.com"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="comments">What happened? *</label>
+          <textarea
+            id="comments"
+            [(ngModel)]="feedbackData.comments"
+            name="comments"
+            placeholder="Describe what you were doing when the error occurred..."
+            class="form-control"
+            rows="5"
+            required
+          ></textarea>
+        </div>
+
+        <div class="error-message" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+
+        <div class="dialog-actions">
+          <button type="button" class="btn btn-secondary" (click)="hide()" [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting">Submit</span>
+            <span *ngIf="isSubmitting">Submitting...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

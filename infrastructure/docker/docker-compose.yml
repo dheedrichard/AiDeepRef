@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: deepref-postgres
+    environment:
+      POSTGRES_DB: deepref
+      POSTGRES_USER: deepref
+      POSTGRES_PASSWORD: deepref_dev_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deepref"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - deepref-network
+
+  # Redis Cache (v7.4 with persistence and security)
+  redis:
+    image: redis:7.4-alpine
+    container_name: deepref-redis
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-deepref_redis_dev_password}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-deepref_redis_dev_password}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-deepref_redis_dev_password}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - deepref-network
+    restart: unless-stopped
+
+  # Redis Commander (Redis GUI for debugging)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: deepref-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD:-deepref_redis_dev_password}
+      - HTTP_USER=${REDIS_COMMANDER_USER:-admin}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD:-admin}
+    ports:
+      - "8081:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - deepref-network
+    restart: unless-stopped
+
+  # NestJS API
+  api:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile.api
+    container_name: deepref-api
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://deepref:deepref_dev_password@postgres:5432/deepref
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-deepref_redis_dev_password}
+      REDIS_TTL_DEFAULT: 300
+      REDIS_MAX_MEMORY: 256mb
+      CACHE_ENABLED: true
+      JWT_SECRET: dev_jwt_secret_change_in_production
+      CORS_ORIGIN: http://localhost:4200
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../apps/api:/app/apps/api
+      - /app/apps/api/node_modules
+      - ../../libs:/app/libs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - deepref-network
+    command: npm run start:dev
+
+  # Angular Web App
+  web:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile.web
+    container_name: deepref-web
+    environment:
+      NODE_ENV: development
+      API_URL: http://localhost:3000
+    ports:
+      - "4200:80"
+    volumes:
+      - ../../apps/web:/app/apps/web
+      - /app/apps/web/node_modules
+      - ../../libs:/app/libs
+    depends_on:
+      - api
+    networks:
+      - deepref-network
+
+  # Adminer for database management
+  adminer:
+    image: adminer:latest
+    container_name: deepref-adminer
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    networks:
+      - deepref-network
+
+networks:
+  deepref-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

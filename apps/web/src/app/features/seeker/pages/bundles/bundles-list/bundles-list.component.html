@@ -1,0 +1,156 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8 flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Reference Bundles</h1>
+      <p class="mt-2 text-gray-600">Manage and share your reference bundles with employers.</p>
+    </div>
+    <a
+      routerLink="/app/seeker/bundles/new"
+      class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+    >
+      <i class="pi pi-plus mr-2"></i>
+      Create Bundle
+    </a>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading$ | async) {
+    <div class="flex justify-center items-center py-12">
+      <i class="pi pi-spin pi-spinner text-4xl text-blue-600"></i>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error$ | async; as error) {
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center">
+        <i class="pi pi-exclamation-triangle text-red-600 mr-3"></i>
+        <div>
+          <h3 class="text-sm font-medium text-red-800">Error loading bundles</h3>
+          <p class="text-sm text-red-700 mt-1">{{ error }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Bundles Grid -->
+  @if (bundles$ | async; as bundles) {
+    @if (bundles.length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (bundle of bundles; track bundle.id) {
+          <div
+            class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border border-gray-200 hover:border-blue-300"
+          >
+            <!-- Bundle Header -->
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex-1">
+                <h3
+                  [routerLink]="['/app/seeker/bundles', bundle.id]"
+                  class="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer"
+                >
+                  {{ bundle.title }}
+                </h3>
+                @if (bundle.description) {
+                  <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ bundle.description }}</p>
+                }
+              </div>
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                [ngClass]="getStatusBadgeClass(bundle.status)"
+              >
+                {{ bundle.status }}
+              </span>
+            </div>
+
+            <!-- Bundle Stats -->
+            <div class="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-gray-200">
+              <div>
+                <p class="text-xs text-gray-600">References</p>
+                <p class="text-lg font-semibold text-gray-900">{{ bundle.referenceIds.length }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-600">RCS Score</p>
+                <p class="text-lg font-semibold text-green-600">{{ bundle.aggregatedRCS }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-600">Views</p>
+                <p class="text-lg font-semibold text-blue-600">{{ bundle.views }}</p>
+              </div>
+            </div>
+
+            <!-- Bundle Info -->
+            <div class="space-y-2 mb-4">
+              @if (bundle.hasPassword) {
+                <div class="flex items-center text-sm text-gray-600">
+                  <i class="pi pi-lock text-xs mr-2"></i>
+                  <span>Password protected</span>
+                </div>
+              }
+
+              @if (bundle.expiryDate) {
+                <div class="flex items-center text-sm">
+                  <i class="pi pi-calendar text-xs mr-2" [ngClass]="{
+                    'text-red-600': isExpiringSoon(bundle.expiryDate),
+                    'text-gray-600': !isExpiringSoon(bundle.expiryDate)
+                  }"></i>
+                  <span [ngClass]="{
+                    'text-red-600 font-medium': isExpiringSoon(bundle.expiryDate),
+                    'text-gray-600': !isExpiringSoon(bundle.expiryDate)
+                  }">
+                    Expires {{ formatDate(bundle.expiryDate) }}
+                  </span>
+                </div>
+              }
+
+              <div class="flex items-center text-sm text-gray-600">
+                <i class="pi pi-clock text-xs mr-2"></i>
+                <span>Created {{ formatDate(bundle.createdAt) }}</span>
+              </div>
+            </div>
+
+            <!-- Bundle Actions -->
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="copyShareLink(bundle.shareLink, $event)"
+                class="flex-1 px-3 py-2 border border-gray-300 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 flex items-center justify-center"
+              >
+                <i class="pi pi-link text-xs mr-2"></i>
+                Copy Link
+              </button>
+              <a
+                [routerLink]="['/app/seeker/bundles', bundle.id]"
+                class="flex-1 px-3 py-2 bg-blue-600 text-sm font-medium text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
+              >
+                <i class="pi pi-eye text-xs mr-2"></i>
+                View
+              </a>
+              <button
+                type="button"
+                (click)="deleteBundle(bundle.id, $event)"
+                class="px-3 py-2 border border-red-300 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 flex items-center justify-center"
+              >
+                <i class="pi pi-trash text-xs"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="bg-white rounded-lg shadow-sm p-12 text-center">
+        <i class="pi pi-folder-open text-6xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No Bundles Yet</h3>
+        <p class="text-gray-600 mb-6">
+          Create your first bundle to share references with employers.
+        </p>
+        <a
+          routerLink="/app/seeker/bundles/new"
+          class="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+        >
+          Create Your First Bundle
+        </a>
+      </div>
+    }
+  }
+</div>

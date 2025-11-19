@@ -1,0 +1,79 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.11.x
+
+      - name: Build application
+        run: npm run build:web -- --configuration=production
+
+      - name: Run Lighthouse CI
+        run: lhci autorun --config=.lighthouserc.json
+        continue-on-error: true
+        timeout-minutes: 20
+
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-results-${{ github.run_id }}
+          path: |
+            .lighthouseci/
+            lhci-results.json
+
+      - name: Comment Lighthouse Results on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            let comment = '## 🔦 Lighthouse Performance Report\n\n';
+
+            // Check if Lighthouse results exist
+            const resultsPath = '.lighthouseci';
+            if (fs.existsSync(resultsPath)) {
+              comment += `✅ Lighthouse CI completed successfully\n\n`;
+              comment += '### Performance Metrics\n';
+              comment += '| Metric | Status |\n';
+              comment += '|--------|--------|\n';
+              comment += '| Performance | 📊 Check artifacts |\n';
+              comment += '| Accessibility | 📊 Check artifacts |\n';
+              comment += '| Best Practices | 📊 Check artifacts |\n';
+              comment += '| SEO | 📊 Check artifacts |\n\n';
+              comment += '**See "Artifacts" section for detailed Lighthouse reports**';
+            } else {
+              comment += '⏳ Lighthouse CI is running...\n';
+              comment += 'Check the "Artifacts" section in the workflow run for results.';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

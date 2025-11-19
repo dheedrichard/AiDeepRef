@@ -1,0 +1,143 @@
+# DeepRef API Contracts
+
+version: "1.0"
+baseUrl: "/api/v1"
+
+## Authentication Endpoints
+auth:
+  POST /auth/signup:
+    description: Create new user account
+    body:
+      firstName: string
+      lastName: string
+      email: string
+      password: string
+      role: seeker | referrer | employer
+    response:
+      userId: string
+      email: string
+      token: string
+
+  POST /auth/signin:
+    description: Sign in with email/password or magic link
+    body:
+      email: string
+      password?: string
+    response:
+      userId: string
+      token: string
+      role: string
+
+  POST /auth/verify-email:
+    description: Verify email with OTP or magic link
+    body:
+      email: string
+      code: string
+    response:
+      verified: boolean
+
+## Seeker Endpoints
+seekers:
+  GET /seekers/{id}/profile:
+    description: Get seeker profile
+    response:
+      id: string
+      firstName: string
+      lastName: string
+      email: string
+      kycStatus: pending | verified | failed
+
+  POST /seekers/{id}/kyc/upload:
+    description: Upload ID document
+    body:
+      documentType: passport | driversLicense | nationalId
+      frontImage: file
+      backImage: file
+    response:
+      uploadId: string
+      status: processing
+
+  POST /seekers/{id}/kyc/selfie:
+    description: Upload selfie for liveness check
+    body:
+      selfieImage: file
+    response:
+      verificationId: string
+      status: processing | verified | failed
+
+  POST /seekers/{id}/references/request:
+    description: Create reference request
+    body:
+      referrerName: string
+      referrerEmail: string
+      company: string
+      role: string
+      questions: array
+      allowedFormats: [video, audio, text]
+      allowEmployerReachback: boolean
+    response:
+      requestId: string
+      status: sent
+
+## Reference Endpoints
+references:
+  GET /references/{id}:
+    description: Get reference details
+    response:
+      id: string
+      seekerId: string
+      referrerId: string
+      status: pending | completed | declined
+      rcsScore: number
+      format: video | audio | text
+
+  POST /references/{id}/submit:
+    description: Submit reference response
+    body:
+      format: video | audio | text
+      content: file | string
+      attachments?: array
+    response:
+      referenceId: string
+      rcsScore: number
+
+## Bundle Endpoints
+bundles:
+  POST /bundles:
+    description: Create reference bundle
+    body:
+      title: string
+      description: string
+      referenceIds: array
+      expiryDate?: date
+      password?: string
+    response:
+      bundleId: string
+      shareLink: string
+
+  GET /bundles/{id}:
+    description: Get bundle details
+    response:
+      id: string
+      title: string
+      aggregatedRCS: number
+      references: array
+
+## AI/ML Endpoints
+ai:
+  POST /ai/verify-authenticity:
+    description: Verify media authenticity
+    body:
+      mediaUrl: string
+      mediaType: video | audio
+    response:
+      authenticityScore: number
+      deepfakeProbability: number
+
+  POST /ai/generate-questions:
+    description: Generate contextual questions
+    body:
+      jobDescription: string
+      role: string
+    response:
+      questions: array

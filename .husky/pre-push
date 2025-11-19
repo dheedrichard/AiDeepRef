@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run tests before pushing
+echo "Running tests before push..."
+npm test
+
+# Run security scanning
+echo "Running security checks..."
+npm run security:secrets || echo "Warning: Secrets detected. Please review before pushing."

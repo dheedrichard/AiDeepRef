@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Initial Bundle (main)",
+    "path": "apps/web/dist/deepref-web/browser/main*.js",
+    "limit": "400 KB",
+    "running": false
+  },
+  {
+    "name": "Vendor Bundle",
+    "path": "apps/web/dist/deepref-web/browser/vendor*.js",
+    "limit": "300 KB",
+    "running": false
+  },
+  {
+    "name": "Total CSS",
+    "path": "apps/web/dist/deepref-web/browser/*.css",
+    "limit": "50 KB",
+    "running": false
+  },
+  {
+    "name": "Chunk Bundles",
+    "path": "apps/web/dist/deepref-web/browser/chunk*.js",
+    "limit": "100 KB",
+    "running": false
+  }
+]

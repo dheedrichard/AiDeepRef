@@ -1,0 +1,193 @@
+<div class="reference-detail-container">
+  @if (reference$ | async; as reference) {
+    <div class="detail-header">
+      <button class="back-button" (click)="goBack()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Back to Bundle
+      </button>
+      <div class="header-actions">
+        @if (bundleSettings$ | async; as settings) {
+          @if (settings.allowDownload) {
+            <button class="action-btn" (click)="downloadReference(reference.id, 'pdf')">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+              Download
+            </button>
+          }
+        }
+        @if (reference.allowReachBack) {
+          <button class="action-btn primary" (click)="requestReachBack(reference.id)">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+            </svg>
+            Request Follow-up
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="detail-content">
+      <!-- Referrer Info -->
+      <div class="referrer-section">
+        <div class="section-header">
+          <h2>Referrer Information</h2>
+          @if (reference.authenticityVerified) {
+            <span class="verified-badge">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              Verified Authentic
+            </span>
+          }
+        </div>
+        <div class="referrer-card">
+          @if (!reference.referrer.isAnonymous) {
+            <h3 class="referrer-name">{{ reference.referrer.name }}</h3>
+            @if (reference.referrer.role || reference.referrer.company) {
+              <p class="referrer-position">
+                @if (reference.referrer.role) {
+                  {{ reference.referrer.role }}
+                }
+                @if (reference.referrer.company) {
+                  <span>at {{ reference.referrer.company }}</span>
+                }
+              </p>
+            }
+          } @else {
+            <h3 class="referrer-name">Anonymous Referrer</h3>
+            <p class="referrer-note">Identity protected per seeker's request</p>
+          }
+          <div class="reference-meta">
+            <div class="meta-item">
+              <strong>Submitted:</strong> {{ formatDate(reference.submittedAt) }}
+            </div>
+            <div class="meta-item">
+              <strong>Format:</strong> {{ reference.format | titlecase }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RCS Score -->
+      <div class="rcs-section">
+        <h2>Reference Credibility Score</h2>
+        <div class="rcs-card">
+          <div class="rcs-overall" [class]="getRcsColorClass(reference.rcsScore.overall)">
+            <div class="rcs-value">{{ reference.rcsScore.overall }}</div>
+            <div class="rcs-label">Overall Score</div>
+          </div>
+          <div class="rcs-breakdown">
+            <div class="rcs-item">
+              <span class="rcs-item-label">Authenticity</span>
+              <div class="rcs-item-bar">
+                <div class="rcs-item-fill" [style.width.%]="reference.rcsScore.authenticity"></div>
+              </div>
+              <span class="rcs-item-value">{{ reference.rcsScore.authenticity }}</span>
+            </div>
+            <div class="rcs-item">
+              <span class="rcs-item-label">Consistency</span>
+              <div class="rcs-item-bar">
+                <div class="rcs-item-fill" [style.width.%]="reference.rcsScore.consistency"></div>
+              </div>
+              <span class="rcs-item-value">{{ reference.rcsScore.consistency }}</span>
+            </div>
+            <div class="rcs-item">
+              <span class="rcs-item-label">Detail</span>
+              <div class="rcs-item-bar">
+                <div class="rcs-item-fill" [style.width.%]="reference.rcsScore.detail"></div>
+              </div>
+              <span class="rcs-item-value">{{ reference.rcsScore.detail }}</span>
+            </div>
+            <div class="rcs-item">
+              <span class="rcs-item-label">Sentiment</span>
+              <div class="rcs-item-bar">
+                <div class="rcs-item-fill" [style.width.%]="reference.rcsScore.sentiment"></div>
+              </div>
+              <span class="rcs-item-value">{{ reference.rcsScore.sentiment }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Media/Content -->
+      <div class="content-section">
+        <h2>Reference Content</h2>
+
+        @if (reference.format === ReferenceFormat.VIDEO && reference.mediaContent) {
+          <app-video-player
+            [mediaContent]="reference.mediaContent"
+            [watermark]="bundleSettings$ | async then 'watermarkEnabled' ? 'DeepRef' : undefined"
+            (playbackEvent)="onPlaybackEvent($event, reference.id)"
+          ></app-video-player>
+
+          @if (reference.mediaContent.transcription) {
+            <div class="transcription-toggle">
+              <button class="toggle-btn" (click)="toggleTranscription()">
+                {{ showTranscription() ? 'Hide' : 'Show' }} Transcription
+              </button>
+            </div>
+            @if (showTranscription()) {
+              <div class="transcription-content">
+                <p>{{ reference.mediaContent.transcription }}</p>
+              </div>
+            }
+          }
+        }
+
+        @if (reference.format === ReferenceFormat.AUDIO && reference.mediaContent) {
+          <div class="audio-player-placeholder">
+            <p>Audio player coming soon</p>
+            <p>Duration: {{ reference.mediaContent.duration }}s</p>
+          </div>
+          @if (reference.mediaContent.transcription) {
+            <div class="transcription-content">
+              <h3>Transcription</h3>
+              <p>{{ reference.mediaContent.transcription }}</p>
+            </div>
+          }
+        }
+
+        @if (reference.format === ReferenceFormat.TEXT) {
+          <div class="text-content">
+            @for (answer of reference.answers; track answer.questionId) {
+              <div class="qa-item">
+                <div class="question">
+                  <strong>Q:</strong> {{ answer.question }}
+                </div>
+                <div class="answer">
+                  <strong>A:</strong> {{ answer.answer }}
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Questions & Answers -->
+      @if (reference.format !== ReferenceFormat.TEXT) {
+        <div class="qa-section">
+          <h2>Questions & Answers</h2>
+          <div class="qa-list">
+            @for (answer of reference.answers; track answer.questionId) {
+              <div class="qa-item">
+                <div class="question">{{ answer.question }}</div>
+                <div class="answer">{{ answer.answer }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (isLoading$ | async) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading reference...</p>
+    </div>
+  }
+</div>

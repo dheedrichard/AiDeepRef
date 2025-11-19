@@ -1,0 +1,22 @@
+# Snyk configuration for DeepRef
+version: v1.25.0
+
+# Ignore specific vulnerabilities (with justification)
+ignore: {}
+
+# Patch vulnerabilities
+patch: {}
+
+# Language settings
+language-settings:
+  javascript:
+    # Scan all package.json files in the monorepo
+    includeDevDependencies: false
+
+# Policy settings
+policy:
+  # Fail on vulnerabilities with severity high or above
+  failThreshold: high
+
+  # Ignore unfixable vulnerabilities
+  ignoreUnfixable: false

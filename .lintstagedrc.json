@@ -1,0 +1,19 @@
+{
+  "*.{ts,tsx}": [
+    "eslint --fix",
+    "prettier --write"
+  ],
+  "*.{js,jsx}": [
+    "eslint --fix",
+    "prettier --write"
+  ],
+  "*.{json,md,yml,yaml}": [
+    "prettier --write"
+  ],
+  "apps/api/**/*.ts": [
+    "npm run --workspace=apps/api lint -- --fix"
+  ],
+  "apps/web/**/*.ts": [
+    "npm run --workspace=apps/web lint -- --fix"
+  ]
+}

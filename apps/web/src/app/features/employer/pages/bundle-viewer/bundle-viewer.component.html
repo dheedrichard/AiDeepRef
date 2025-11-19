@@ -1,0 +1,312 @@
+<div class="bundle-viewer-container">
+  @if (bundleViewData$ | async; as viewData) {
+    @if (viewData.canView) {
+      <!-- Header -->
+      <div class="bundle-header">
+        <div class="header-content">
+          <button class="back-button" routerLink="/employer/bundle-access">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Back
+          </button>
+          <h1 class="bundle-title">{{ viewData.bundle?.title || 'Reference Bundle' }}</h1>
+          <div class="header-actions">
+            <button class="icon-button" (click)="printBundle()" title="Print">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button class="icon-button" (click)="exportBundle()" title="Export">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button class="icon-button" (click)="shareBundle()" title="Share">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seeker Overview -->
+      @if (seekerInfo$ | async; as seeker) {
+        <div class="seeker-overview">
+          <div class="seeker-card">
+            <div class="seeker-avatar">
+              @if (seeker.profilePictureUrl) {
+                <img [src]="seeker.profilePictureUrl" [alt]="seeker.firstName + ' ' + seeker.lastName" />
+              } @else {
+                <div class="avatar-placeholder">{{ seeker.firstName[0] }}{{ seeker.lastName[0] }}</div>
+              }
+            </div>
+            <div class="seeker-info">
+              <h2 class="seeker-name">{{ seeker.firstName }} {{ seeker.lastName }}</h2>
+              @if (seeker.headline) {
+                <p class="seeker-headline">{{ seeker.headline }}</p>
+              }
+            </div>
+          </div>
+
+          <!-- Aggregated RCS Score -->
+          @if (aggregatedRcs$ | async; as rcs) {
+            <div class="rcs-overview">
+              <div class="rcs-main-score" [class]="getRcsColorClass(rcs.overall)">
+                <div class="rcs-value">{{ rcs.overall }}</div>
+                <div class="rcs-label">Overall RCS</div>
+              </div>
+              <div class="rcs-breakdown">
+                <div class="rcs-item">
+                  <div class="rcs-item-label">Authenticity</div>
+                  <div class="rcs-item-bar">
+                    <div class="rcs-item-fill" [style.width.%]="rcs.authenticity"></div>
+                  </div>
+                  <div class="rcs-item-value">{{ rcs.authenticity }}</div>
+                </div>
+                <div class="rcs-item">
+                  <div class="rcs-item-label">Consistency</div>
+                  <div class="rcs-item-bar">
+                    <div class="rcs-item-fill" [style.width.%]="rcs.consistency"></div>
+                  </div>
+                  <div class="rcs-item-value">{{ rcs.consistency }}</div>
+                </div>
+                <div class="rcs-item">
+                  <div class="rcs-item-label">Detail</div>
+                  <div class="rcs-item-bar">
+                    <div class="rcs-item-fill" [style.width.%]="rcs.detail"></div>
+                  </div>
+                  <div class="rcs-item-value">{{ rcs.detail }}</div>
+                </div>
+                <div class="rcs-item">
+                  <div class="rcs-item-label">Sentiment</div>
+                  <div class="rcs-item-bar">
+                    <div class="rcs-item-fill" [style.width.%]="rcs.sentiment"></div>
+                  </div>
+                  <div class="rcs-item-value">{{ rcs.sentiment }}</div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Bundle Statistics -->
+          @if (statistics$ | async; as stats) {
+            <div class="bundle-statistics">
+              <div class="stat-item">
+                <div class="stat-value">{{ stats.totalReferences }}</div>
+                <div class="stat-label">Total References</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ stats.videoReferences }}</div>
+                <div class="stat-label">Video</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ stats.audioReferences }}</div>
+                <div class="stat-label">Audio</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ stats.textReferences }}</div>
+                <div class="stat-label">Text</div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Filters and Controls -->
+      <div class="controls-bar">
+        <div class="controls-left">
+          <button class="filter-toggle" (click)="toggleFilters()">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+            </svg>
+            Filters
+            @if (showFilters()) {
+              <span class="active-indicator"></span>
+            }
+          </button>
+          <div class="search-box">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search references..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event); applyFilters()"
+              class="search-input"
+            />
+          </div>
+        </div>
+        <div class="controls-right">
+          <button
+            class="view-toggle"
+            [class.active]="viewMode() === 'grid'"
+            (click)="viewMode.set('grid')"
+            title="Grid view"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM13 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+            </svg>
+          </button>
+          <button
+            class="view-toggle"
+            [class.active]="viewMode() === 'list'"
+            (click)="viewMode.set('list')"
+            title="List view"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Panel -->
+      @if (showFilters()) {
+        <div class="filter-panel">
+          <div class="filter-group">
+            <label class="filter-label">Format</label>
+            <select
+              [ngModel]="selectedFormat()"
+              (ngModelChange)="selectedFormat.set($event); applyFilters()"
+              class="filter-select"
+            >
+              <option value="all">All Formats</option>
+              <option [value]="ReferenceFormat.VIDEO">Video</option>
+              <option [value]="ReferenceFormat.AUDIO">Audio</option>
+              <option [value]="ReferenceFormat.TEXT">Text</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Min RCS Score: {{ minRcsScore() }}</label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="10"
+              [ngModel]="minRcsScore()"
+              (ngModelChange)="minRcsScore.set($event); applyFilters()"
+              class="filter-range"
+            />
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Sort By</label>
+            <select
+              [ngModel]="sortBy()"
+              (ngModelChange)="sortBy.set($event); applyFilters()"
+              class="filter-select"
+            >
+              <option value="date">Date</option>
+              <option value="rcsScore">RCS Score</option>
+              <option value="format">Format</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Order</label>
+            <select
+              [ngModel]="sortOrder()"
+              (ngModelChange)="sortOrder.set($event); applyFilters()"
+              class="filter-select"
+            >
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
+            </select>
+          </div>
+          <button class="btn-clear-filters" (click)="clearFilters()">Clear All Filters</button>
+        </div>
+      }
+
+      <!-- References List -->
+      @if (filteredReferences$ | async; as references) {
+        <div class="references-container" [class.grid-view]="viewMode() === 'grid'" [class.list-view]="viewMode() === 'list'">
+          @if (references.length === 0) {
+            <div class="empty-state">
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor">
+                <circle cx="32" cy="32" r="28" stroke-width="4" />
+                <path d="M32 20v24M20 32h24" stroke-width="4" stroke-linecap="round" />
+              </svg>
+              <h3>No references found</h3>
+              <p>Try adjusting your filters or search query</p>
+            </div>
+          } @else {
+            @for (reference of references; track reference.id) {
+              <div class="reference-card" (click)="onReferenceCardClick(reference)">
+                <div class="reference-header">
+                  <div class="reference-format-badge" [class]="'format-' + reference.format">
+                    {{ getFormatLabel(reference.format) }}
+                  </div>
+                  <div class="reference-rcs" [class]="getRcsColorClass(reference.rcsScore.overall)">
+                    {{ reference.rcsScore.overall }}
+                  </div>
+                </div>
+                <div class="reference-body">
+                  @if (!reference.referrer.isAnonymous && reference.referrer.name) {
+                    <h3 class="reference-referrer">{{ reference.referrer.name }}</h3>
+                  } @else {
+                    <h3 class="reference-referrer">Anonymous Referrer</h3>
+                  }
+                  @if (reference.referrer.company || reference.referrer.role) {
+                    <p class="reference-position">
+                      @if (reference.referrer.role) {
+                        {{ reference.referrer.role }}
+                      }
+                      @if (reference.referrer.company) {
+                        <span>at {{ reference.referrer.company }}</span>
+                      }
+                    </p>
+                  }
+                  <div class="reference-meta">
+                    <span class="meta-item">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h4a1 1 0 100-2H6z" clip-rule="evenodd" />
+                      </svg>
+                      {{ formatDate(reference.submittedAt) }}
+                    </span>
+                    @if (reference.authenticityVerified) {
+                      <span class="meta-item verified">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Verified
+                      </span>
+                    }
+                  </div>
+                </div>
+                <div class="reference-footer">
+                  <span class="view-details">View Details →</span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+    } @else {
+      <!-- Access Denied / Expired -->
+      <div class="access-denied">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="currentColor" class="error-icon">
+          <path fill-rule="evenodd" d="M32 4C16.536 4 4 16.536 4 32s12.536 28 28 28 28-12.536 28-28S47.464 4 32 4zM24 24a4 4 0 118 0 4 4 0 01-8 0zm16 0a4 4 0 118 0 4 4 0 01-8 0zM32 44c-4.418 0-8-2.686-8-6h16c0 3.314-3.582 6-8 6z" clip-rule="evenodd" />
+        </svg>
+        <h2>Unable to View Bundle</h2>
+        @if (viewData.isExpired) {
+          <p>This bundle has expired and is no longer accessible.</p>
+        } @else if (!viewData.isSessionValid) {
+          <p>Your session has expired. Please access the bundle again.</p>
+        } @else {
+          <p>You don't have permission to view this bundle.</p>
+        }
+        <button class="btn btn-primary" routerLink="/employer/bundle-access">
+          Go to Bundle Access
+        </button>
+      </div>
+    }
+  }
+
+  @if (isLoading$ | async) {
+    <div class="loading-overlay">
+      <div class="spinner-large"></div>
+      <p>Loading bundle...</p>
+    </div>
+  }
+</div>

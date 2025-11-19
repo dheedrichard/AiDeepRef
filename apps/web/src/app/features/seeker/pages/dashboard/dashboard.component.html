@@ -1,0 +1,233 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+    <p class="mt-2 text-gray-600">Welcome back! Here's your reference activity overview.</p>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading$ | async) {
+    <div class="flex justify-center items-center py-12">
+      <i class="pi pi-spin pi-spinner text-4xl text-blue-600"></i>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error$ | async; as error) {
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center">
+        <i class="pi pi-exclamation-triangle text-red-600 mr-3"></i>
+        <div>
+          <h3 class="text-sm font-medium text-red-800">Error loading dashboard</h3>
+          <p class="text-sm text-red-700 mt-1">{{ error }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Dashboard Content -->
+  @if (dashboardData$ | async; as data) {
+    <!-- Statistics Cards -->
+    @if (data.stats) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <app-stat-card
+          title="Total References"
+          [value]="data.stats.totalReferences"
+          icon="pi pi-file"
+          iconBgClass="bg-blue-100"
+          iconColorClass="text-blue-600"
+          subtitle="Completed references"
+        />
+
+        <app-stat-card
+          title="Average RCS"
+          [value]="data.stats.averageRCS"
+          icon="pi pi-chart-line"
+          iconBgClass="bg-green-100"
+          iconColorClass="text-green-600"
+          subtitle="Reference credibility score"
+        />
+
+        <app-stat-card
+          title="Active Bundles"
+          [value]="data.stats.activeBundles"
+          icon="pi pi-folder"
+          iconBgClass="bg-purple-100"
+          iconColorClass="text-purple-600"
+          subtitle="Shared with employers"
+        />
+
+        <app-stat-card
+          title="Pending Requests"
+          [value]="data.stats.pendingRequests"
+          icon="pi pi-clock"
+          iconBgClass="bg-orange-100"
+          iconColorClass="text-orange-600"
+          subtitle="Awaiting response"
+        />
+      </div>
+    }
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left Column - Active Requests & References -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Active Reference Requests -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Active Reference Requests</h2>
+            <a
+              routerLink="/app/seeker/requests/new"
+              class="text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              New Request
+            </a>
+          </div>
+
+          @if (data.pendingRequests.length > 0) {
+            <div class="space-y-3">
+              @for (request of data.pendingRequests; track request.id) {
+                <div
+                  class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors cursor-pointer"
+                  [routerLink]="['/app/seeker/requests', request.id]"
+                >
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <h3 class="text-sm font-medium text-gray-900">
+                        {{ request.referrerName }}
+                      </h3>
+                      <p class="text-sm text-gray-600">
+                        {{ request.role }} at {{ request.company }}
+                      </p>
+                      <div class="flex items-center mt-2 space-x-4">
+                        <span
+                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                          [ngClass]="{
+                            'bg-yellow-100 text-yellow-800': request.status === 'sent',
+                            'bg-blue-100 text-blue-800': request.status === 'pending'
+                          }"
+                        >
+                          {{ request.status }}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                          Sent {{ formatDate(request.sentAt) }}
+                        </span>
+                      </div>
+                    </div>
+                    <i class="pi pi-chevron-right text-gray-400"></i>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8">
+              <i class="pi pi-inbox text-4xl text-gray-300 mb-2"></i>
+              <p class="text-sm text-gray-500">No active requests</p>
+              <a
+                routerLink="/app/seeker/requests/new"
+                class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+              >
+                Create Your First Request
+              </a>
+            </div>
+          }
+        </div>
+
+        <!-- Recent References -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Recent References</h2>
+            <a
+              routerLink="/app/seeker/library"
+              class="text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              View All
+            </a>
+          </div>
+
+          @if (data.references.length > 0) {
+            <div class="space-y-3">
+              @for (reference of data.references.slice(0, 3); track reference.id) {
+                <div
+                  class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors cursor-pointer"
+                  [routerLink]="['/app/seeker/library', reference.id]"
+                >
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <div class="flex items-center space-x-2">
+                        <h3 class="text-sm font-medium text-gray-900">
+                          {{ reference.referrerName }}
+                        </h3>
+                        @if (reference.isVerified) {
+                          <i class="pi pi-verified text-blue-600 text-xs"></i>
+                        }
+                      </div>
+                      <p class="text-sm text-gray-600">
+                        {{ reference.role }} at {{ reference.company }}
+                      </p>
+                      <div class="flex items-center mt-2 space-x-4">
+                        <span class="text-xs text-gray-500">
+                          RCS: <span class="font-semibold">{{ reference.rcsScore }}</span>
+                        </span>
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                          [ngClass]="{
+                            'bg-purple-100 text-purple-800': reference.format === 'video',
+                            'bg-green-100 text-green-800': reference.format === 'audio',
+                            'bg-blue-100 text-blue-800': reference.format === 'text'
+                          }"
+                        >
+                          {{ reference.format }}
+                        </span>
+                      </div>
+                    </div>
+                    <i class="pi pi-chevron-right text-gray-400"></i>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8">
+              <i class="pi pi-inbox text-4xl text-gray-300 mb-2"></i>
+              <p class="text-sm text-gray-500">No references yet</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Right Column - Activity Feed & Quick Actions -->
+      <div class="space-y-6">
+        <!-- Recent Activity -->
+        <app-activity-feed [activities]="data.activity" />
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div class="space-y-3">
+            <a
+              routerLink="/app/seeker/requests/new"
+              class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+            >
+              <i class="pi pi-plus-circle text-blue-600 text-xl mr-3"></i>
+              <span class="text-sm font-medium text-gray-900">New Reference Request</span>
+            </a>
+            <a
+              routerLink="/app/seeker/bundles/new"
+              class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
+            >
+              <i class="pi pi-folder-plus text-purple-600 text-xl mr-3"></i>
+              <span class="text-sm font-medium text-gray-900">Create Bundle</span>
+            </a>
+            <a
+              routerLink="/app/seeker/library"
+              class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
+            >
+              <i class="pi pi-book text-green-600 text-xl mr-3"></i>
+              <span class="text-sm font-medium text-gray-900">View Library</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

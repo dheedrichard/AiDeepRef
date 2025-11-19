@@ -1,0 +1,28 @@
+# Semgrep configuration for DeepRef
+# This file configures which rulesets to use for SAST scanning
+
+rules:
+  - p/security-audit
+  - p/secrets
+  - p/owasp-top-ten
+  - p/javascript
+  - p/typescript
+  - p/nodejs
+  - p/react
+  - p/docker
+
+paths:
+  include:
+    - apps/
+    - libs/
+    - infrastructure/
+
+  exclude:
+    - node_modules/
+    - dist/
+    - build/
+    - coverage/
+    - "*.test.ts"
+    - "*.spec.ts"
+    - "*.test.js"
+    - "*.spec.js"
