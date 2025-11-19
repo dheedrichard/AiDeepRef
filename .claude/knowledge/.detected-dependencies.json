@@ -1,0 +1,9 @@
+{
+  "detected_at": "2025-11-18T19:47:05Z",
+  "frameworks": {},
+  "libraries": {},
+  "tools": {},
+  "package_managers": [
+    "npm"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "user-prompt-submit": {
+      "command": "bash .claude/scripts/check-and-fetch-docs.sh",
+      "description": "Checks for new frameworks/libraries and fetches latest Anthropic documentation"
+    }
+  },
+  "agent": {
+    "orchestrator": {
+      "knowledge_base": ".claude/knowledge",
+      "documentation_sources": [
+        "https://www.anthropic.com/engineering",
+        "https://docs.claude.com/en/home",
+        "https://github.com/anthropics",
+        "https://code.claude.com/docs"
+      ],
+      "auto_refresh_docs": true
+    }
+  }
+}

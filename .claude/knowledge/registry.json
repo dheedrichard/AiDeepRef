@@ -1,0 +1,47 @@
+{
+  "last_updated": "2025-11-17T12:00:00Z",
+  "version": "1.0.0",
+  "frameworks": {},
+  "libraries": {},
+  "tools": {},
+  "ide": {},
+  "mcp_servers": {},
+  "anthropic": {
+    "claude-code": {
+      "version": "latest",
+      "source": "https://code.claude.com/docs",
+      "cached_at": "2025-11-17T12:00:00Z",
+      "status": "cached",
+      "files": [
+        "anthropic/claude-code/quick-reference.md"
+      ]
+    },
+    "mcp": {
+      "version": "latest",
+      "source": "https://modelcontextprotocol.io",
+      "cached_at": "2025-11-17T12:00:00Z",
+      "status": "cached",
+      "files": [
+        "anthropic/mcp/quick-reference.md"
+      ]
+    },
+    "agents": {
+      "version": "latest",
+      "source": "https://docs.anthropic.com",
+      "cached_at": "2025-11-17T12:00:00Z",
+      "status": "cached",
+      "files": [
+        "anthropic/agents/quick-reference.md"
+      ]
+    },
+    "skills": {
+      "version": "latest",
+      "source": "https://code.claude.com/docs/skills",
+      "cached_at": "2025-11-17T12:00:00Z",
+      "status": "cached",
+      "files": [
+        "anthropic/skills/quick-reference.md"
+      ]
+    }
+  }
+}
