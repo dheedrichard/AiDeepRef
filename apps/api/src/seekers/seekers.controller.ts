@@ -43,7 +43,7 @@ export class SeekersController {
   uploadKyc(
     @Param('id') id: string,
     @Body() uploadKycDto: UploadKycDto,
-    @UploadedFiles() files: { frontImage?: unknown[]; backImage?: unknown[] },
+    @UploadedFiles() files: { frontImage?: Express.Multer.File[]; backImage?: Express.Multer.File[] },
   ) {
     return this.seekersService.uploadKycDocument(id, uploadKycDto.documentType, files);
   }
@@ -56,9 +56,24 @@ export class SeekersController {
   uploadSelfie(
     @Param('id') id: string,
     @Body() uploadSelfieDto: UploadSelfieDto,
-    @UploadedFiles() files: { selfieImage?: unknown[] },
+    @UploadedFiles() files: { selfieImage?: Express.Multer.File[] },
   ) {
     return this.seekersService.uploadSelfie(id, files);
+  }
+
+  @Get(':id/kyc/status')
+  @ApiOperation({ summary: 'Get KYC verification status' })
+  @ApiResponse({
+    status: 200,
+    description: 'KYC status retrieved successfully',
+    schema: {
+      properties: {
+        kycStatus: { type: 'string', enum: ['pending', 'verified', 'failed'] },
+      },
+    },
+  })
+  getKycStatus(@Param('id') id: string) {
+    return this.seekersService.getKycStatus(id);
   }
 
   @Post(':id/references/request')

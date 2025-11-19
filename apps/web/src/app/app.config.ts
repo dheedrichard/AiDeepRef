@@ -13,6 +13,8 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { provideRouterStore } from '@ngrx/router-store';
 
 import { routes } from './app.routes';
+import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
+import { AuthEffects } from './features/auth/store/auth.effects';
 
 /**
  * DeepRef Application Configuration
@@ -58,8 +60,8 @@ export const appConfig: ApplicationConfig = {
     // NgRx Store - State management
     provideStore(
       {
-        // Root state reducers will be added here
-        // Example: auth: authReducer,
+        // Auth feature reducer
+        [authFeatureKey]: authReducer,
       },
       {
         runtimeChecks: {
@@ -75,8 +77,8 @@ export const appConfig: ApplicationConfig = {
 
     // NgRx Effects - Side effects management
     provideEffects([
-      // Effects will be added here
-      // Example: AuthEffects,
+      // Auth effects
+      AuthEffects,
     ]),
 
     // NgRx Router Store - Router state in store

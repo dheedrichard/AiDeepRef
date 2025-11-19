@@ -60,6 +60,12 @@ export class User {
   emailVerificationExpiry: Date | null;
 
   @Column({ nullable: true })
+  magicLinkToken: string | null;
+
+  @Column({ nullable: true })
+  magicLinkExpiry: Date | null;
+
+  @Column({ nullable: true })
   profilePictureUrl: string | null;
 
   @Column({ nullable: true })

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 
@@ -14,6 +16,13 @@ import { AiModule } from './ai/ai.module';
 import { DatabaseModule } from './database/database.module';
 import { CommonModule } from './common/common.module';
 
+// Security imports
+import { getThrottleConfig } from './common/config/throttle.config';
+import { CustomThrottleGuard } from './common/guards/throttle.guard';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
+import { CsrfGuard } from './common/guards/csrf.guard';
+
 @Module({
   imports: [
     // Configuration
@@ -21,6 +30,9 @@ import { CommonModule } from './common/common.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // Rate limiting
+    ThrottlerModule.forRoot(getThrottleConfig()),
 
     // Winston Logger
     WinstonModule.forRoot({
@@ -71,6 +83,25 @@ import { CommonModule } from './common/common.module';
     ReferencesModule,
     BundlesModule,
     AiModule,
+  ],
+  providers: [
+    // Global Guards - Order matters!
+    {
+      provide: APP_GUARD,
+      useClass: CustomThrottleGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: CsrfGuard,
+    },
   ],
 })
 export class AppModule {}
