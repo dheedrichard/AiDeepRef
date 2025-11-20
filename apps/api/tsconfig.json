@@ -24,5 +24,6 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test"]
+  "exclude": ["node_modules", "dist", "test"],
+  "typeRoots": ["./node_modules/@types", "./src/types"]
 }

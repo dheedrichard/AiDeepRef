@@ -28,6 +28,7 @@ import { SessionManagerService } from './services/session-manager.service';
 import { InteractionLoggerService } from './services/interaction-logger.service';
 import { BulkProcessorService } from './services/bulk-processor.service';
 import { SecureAIChatService } from './services/secure-ai-chat.service';
+import { AICacheService } from './services/ai-cache.service';
 
 // Controllers
 import {
@@ -89,6 +90,7 @@ import aiModelsConfig from './config/ai-models.config';
     InteractionLoggerService,
     BulkProcessorService,
     SecureAIChatService,
+    AICacheService,
 
     // Guards
     AgentSessionGuard,
@@ -109,6 +111,7 @@ import aiModelsConfig from './config/ai-models.config';
     InteractionLoggerService,
     BulkProcessorService,
     SecureAIChatService,
+    AICacheService,
 
     // Export guards
     AgentSessionGuard,

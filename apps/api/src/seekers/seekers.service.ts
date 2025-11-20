@@ -76,10 +76,28 @@ export class SeekersService {
       }
     }
 
-    // Upload files to storage
-    const frontImageResult = await this.storageService.uploadFile(frontImage, 'kyc');
+    // Upload files to storage with encryption for sensitive KYC documents
+    const uploadOptions = {
+      encrypt: true, // Enable encryption for KYC documents
+      storageClass: 'STANDARD' as const, // Use STANDARD for frequently accessed documents
+      metadata: {
+        userId,
+        documentType,
+      },
+      tags: {
+        category: 'kyc',
+        documentType,
+        uploadDate: new Date().toISOString().split('T')[0],
+      },
+    };
+
+    const frontImageResult = await this.storageService.uploadFile(
+      frontImage,
+      'kyc/documents',
+      uploadOptions,
+    );
     const backImageResult = backImage
-      ? await this.storageService.uploadFile(backImage, 'kyc')
+      ? await this.storageService.uploadFile(backImage, 'kyc/documents', uploadOptions)
       : null;
 
     // Create KYC document record
@@ -134,8 +152,25 @@ export class SeekersService {
       throw new BadRequestException(validation.error);
     }
 
-    // Upload file to storage
-    const selfieResult = await this.storageService.uploadFile(selfieImage, 'kyc/selfies');
+    // Upload file to storage with encryption
+    const uploadOptions = {
+      encrypt: true, // Enable encryption for selfie images
+      storageClass: 'STANDARD' as const,
+      metadata: {
+        userId,
+      },
+      tags: {
+        category: 'kyc',
+        type: 'selfie',
+        uploadDate: new Date().toISOString().split('T')[0],
+      },
+    };
+
+    const selfieResult = await this.storageService.uploadFile(
+      selfieImage,
+      'kyc/selfies',
+      uploadOptions,
+    );
 
     // Find existing KYC document for this user
     const kycDocument = await this.kycDocumentRepository.findOne({

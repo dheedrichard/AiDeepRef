@@ -1,0 +1,109 @@
+{
+  "Rules": [
+    {
+      "Id": "KYC-Documents-Lifecycle",
+      "Status": "Enabled",
+      "Filter": {
+        "And": {
+          "Prefix": "kyc/",
+          "Tags": [
+            {
+              "Key": "category",
+              "Value": "kyc"
+            }
+          ]
+        }
+      },
+      "Transitions": [
+        {
+          "Days": 90,
+          "StorageClass": "INTELLIGENT_TIERING"
+        },
+        {
+          "Days": 180,
+          "StorageClass": "GLACIER_IR"
+        },
+        {
+          "Days": 365,
+          "StorageClass": "GLACIER"
+        },
+        {
+          "Days": 2555,
+          "StorageClass": "DEEP_ARCHIVE"
+        }
+      ],
+      "NoncurrentVersionTransitions": [
+        {
+          "NoncurrentDays": 30,
+          "StorageClass": "GLACIER"
+        },
+        {
+          "NoncurrentDays": 90,
+          "StorageClass": "DEEP_ARCHIVE"
+        }
+      ],
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 180
+      },
+      "Expiration": {
+        "Days": 2920
+      }
+    },
+    {
+      "Id": "Temporary-Files-Cleanup",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "temp/"
+      },
+      "Expiration": {
+        "Days": 7
+      },
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 1
+      }
+    },
+    {
+      "Id": "Processing-Files-Cleanup",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "processing/"
+      },
+      "Expiration": {
+        "Days": 3
+      },
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 1
+      }
+    },
+    {
+      "Id": "Thumbnail-Cache-Lifecycle",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "thumbnails/"
+      },
+      "Transitions": [
+        {
+          "Days": 30,
+          "StorageClass": "ONEZONE_IA"
+        }
+      ],
+      "Expiration": {
+        "Days": 90
+      }
+    },
+    {
+      "Id": "Failed-Upload-Cleanup",
+      "Status": "Enabled",
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+      }
+    },
+    {
+      "Id": "Delete-Markers-Cleanup",
+      "Status": "Enabled",
+      "Expiration": {
+        "ExpiredObjectDeleteMarker": true
+      }
+    }
+  ]
+}

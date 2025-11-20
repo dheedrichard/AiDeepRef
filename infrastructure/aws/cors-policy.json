@@ -1,0 +1,30 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://deepref.ai",
+        "https://www.deepref.ai",
+        "https://app.deepref.ai",
+        "http://localhost:4200",
+        "http://localhost:3000"
+      ],
+      "AllowedMethods": [
+        "GET",
+        "PUT",
+        "POST",
+        "DELETE",
+        "HEAD"
+      ],
+      "AllowedHeaders": [
+        "*"
+      ],
+      "ExposeHeaders": [
+        "ETag",
+        "x-amz-server-side-encryption",
+        "x-amz-request-id",
+        "x-amz-id-2"
+      ],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}
